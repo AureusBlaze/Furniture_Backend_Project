@@ -1,0 +1,277 @@
+name: 'AR Models'
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/products/{product_id}/ar-model'
+    metadata:
+      custom: []
+      groupName: 'AR Models'
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Get AR model for a product.'
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      product_id:
+        custom: []
+        name: product_id
+        description: 'The ID of the product.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      product:
+        custom: []
+        name: product
+        description: 'Product ID.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      product_id: 1
+      product: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"data":{}}'
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 404
+        content: '{"message":"No AR model found for this product."}'
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/ar-models
+    metadata:
+      custom: []
+      groupName: 'AR Models'
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'List all AR models.'
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"data":[]}'
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/products/{product_id}/ar-model'
+    metadata:
+      custom: []
+      groupName: 'AR Models'
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Attach an AR model to a product.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      product_id:
+        custom: []
+        name: product_id
+        description: 'The ID of the product.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      product:
+        custom: []
+        name: product
+        description: 'Product ID.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      product_id: 1
+      product: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      file_url:
+        custom: []
+        name: file_url
+        description: 'URL to the 3D model file.'
+        required: true
+        example: 'https://example.com/model.glb'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      format:
+        custom: []
+        name: format
+        description: 'GLB, USDZ, or OBJ.'
+        required: true
+        example: glb
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      thumbnail_url:
+        custom: []
+        name: thumbnail_url
+        description: 'optional Thumbnail image URL.'
+        required: false
+        example: 'http://www.bailey.biz/quos-velit-et-fugiat-sunt-nihil-accusantium-harum.html'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      file_size:
+        custom: []
+        name: file_size
+        description: 'optional File size in bytes.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      file_url: 'https://example.com/model.glb'
+      format: glb
+      thumbnail_url: 'http://www.bailey.biz/quos-velit-et-fugiat-sunt-nihil-accusantium-harum.html'
+      file_size: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 201
+        content: '{"data":{}}'
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - DELETE
+    uri: 'api/ar-models/{arModel_id}'
+    metadata:
+      custom: []
+      groupName: 'AR Models'
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Delete an AR model.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      arModel_id:
+        custom: []
+        name: arModel_id
+        description: 'The ID of the arModel.'
+        required: true
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      arModel:
+        custom: []
+        name: arModel
+        description: 'AR Model ID.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      arModel_id: 16
+      arModel: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"message":"AR model deleted."}'
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

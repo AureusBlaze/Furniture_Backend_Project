@@ -1,0 +1,109 @@
+user
+
+id
+created_at
+updated_at
+name
+email
+password
+addresses_id (FK)
+role (admin, vendor, customer)
+
+vendor
+
+id
+created_at
+updated_at
+name
+addresses_id (FK)
+
+categries
+
+id
+created_at
+updated_at
+name
+parent_id (nullable) -- for nested categories
+
+products
+
+id
+created_at
+updated_at
+name
+description
+price
+stock
+is_active
+vendor_id (FK)
+category_id (FK)
+
+tags
+
+id
+created_at
+updated_at
+name
+
+product_tags
+
+id
+created_at
+updated_at
+product_id (FK)
+tag_id (FK)
+
+media
+
+id
+created_at
+updated_at
+name
+url
+type
+size
+
+product_media
+
+id
+created_at
+updated_at
+product_id (FK)
+media_id (FK)
+
+orders
+
+id
+created_at
+updated_at
+user_id (FK)
+total_price
+status (pending, paid, shipped, cancelled)
+
+order_address
+
+id
+created_at
+updated_at
+order_id (FK)
+address_id (FK)
+
+order_items
+
+id
+created_at
+updated_at
+order_id (FK)
+product_id (FK)
+quantity
+
+addresses
+
+id
+created_at
+updated_at
+user_id (FK)
+city
+country
+address_line
+postal_code
