@@ -4,13 +4,24 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\Tag;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AiService
 {
+    protected string $apiKey;
+    protected string $model;
+    protected int $timeout;
+
+    public function __construct()
+    {
+        $this->apiKey = config('gemini.api_key');
+        $this->model = config('gemini.model', 'gemini-2.0-flash');
+        $this->timeout = config('gemini.request_timeout', 60);
+    }
+
     /**
      * Analyse a room image and return an array of furniture tag strings.
      *
@@ -18,40 +29,25 @@ class AiService
      */
     public function analyzeRoomImage(UploadedFile $image): array
     {
-        // Encode image as base64
-        $imageData   = base64_encode(file_get_contents($image->getRealPath()));
-        $mimeType    = $image->getMimeType();
+        $imageData = base64_encode(file_get_contents($image->getRealPath()));
+        $mimeType = $image->getMimeType();
 
-        $response = OpenAI::chat()->create([
-            'model'    => 'gpt-4o',
-            'messages' => [
+        $response = $this->callGemini(
+            prompt: 'You are a furniture expert. Analyse this room image and identify all furniture items and their style attributes (e.g. "Modern", "Sofa", "Wooden", "Minimalist", "Dining Table"). Return ONLY a valid JSON array of tag strings, no explanation. Example: ["Modern","Sofa","Wooden","Coffee Table","Minimalist"]',
+            images: [
                 [
-                    'role'    => 'user',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => 'You are a furniture expert. Analyse this room image and identify all furniture items and their style attributes (e.g. "Modern", "Sofa", "Wooden", "Minimalist", "Dining Table"). Return ONLY a valid JSON array of tag strings, no explanation. Example: ["Modern","Sofa","Wooden","Coffee Table","Minimalist"]',
-                        ],
-                        [
-                            'type'      => 'image_url',
-                            'image_url' => [
-                                'url' => "data:{$mimeType};base64,{$imageData}",
-                            ],
-                        ],
-                    ],
+                    'mime_type' => $mimeType,
+                    'data' => $imageData,
                 ],
             ],
-            'max_tokens' => 300,
+            maxTokens: 300
+        );
+
+        Log::info('Gemini API response', [
+            'response' => $response,
         ]);
 
-        $content = $response->choices[0]->message->content ?? '[]';
-
-        // Strip markdown code fences if present
-        $content = trim(preg_replace('/^```json\s*|```\s*$/m', '', $content));
-
-        $tags = json_decode($content, true);
-
-        return is_array($tags) ? $tags : [];
+        return $this->parseJsonArray($response);
     }
 
     /**
@@ -66,22 +62,21 @@ class AiService
         return Product::with(['vendor', 'category', 'tags', 'media', 'arModel'])
             ->active()
             ->where(function ($query) use ($tags) {
-                // Match by tag names OR product name/material
                 $query->whereHas('tags', fn($q) => $q->whereIn('name', $tags))
-                      ->orWhere(function ($q) use ($tags) {
-                          foreach ($tags as $tag) {
-                              $q->orWhere('name', 'like', "%{$tag}%")
+                    ->orWhere(function ($q) use ($tags) {
+                        foreach ($tags as $tag) {
+                            $q->orWhere('name', 'like', "%{$tag}%")
                                 ->orWhere('material', 'like', "%{$tag}%")
                                 ->orWhere('description', 'like', "%{$tag}%");
-                          }
-                      });
+                        }
+                    });
             })
             ->limit(20)
             ->get();
     }
 
     /**
-     * Auto-tag a product using its images via OpenAI Vision.
+     * Auto-tag a product using its images via Gemini Vision.
      *
      * @return string[]
      */
@@ -89,43 +84,45 @@ class AiService
     {
         $product->load('media');
 
-        // Use up to 3 product images
-        $imageContents = [];
+        // Build image parts from up to 3 product images
+        $images = [];
         foreach ($product->media->take(3) as $media) {
-            $imageContents[] = [
-                'type'      => 'image_url',
-                'image_url' => ['url' => $media->url],
-            ];
+            // For remote URLs, fetch and encode the image
+            try {
+                $imageContent = file_get_contents($media->url);
+                if ($imageContent === false) {
+                    continue;
+                }
+
+                // Detect MIME type from content
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mimeType = $finfo->buffer($imageContent);
+
+                $images[] = [
+                    'mime_type' => $mimeType,
+                    'data' => base64_encode($imageContent),
+                ];
+            } catch (\Exception $e) {
+                Log::warning("AiService: Failed to fetch product image: {$media->url}", [
+                    'error' => $e->getMessage(),
+                ]);
+                continue;
+            }
         }
 
-        if (empty($imageContents)) {
+        if (empty($images)) {
             return [];
         }
 
-        $response = OpenAI::chat()->create([
-            'model'    => 'gpt-4o',
-            'messages' => [
-                [
-                    'role'    => 'user',
-                    'content' => array_merge(
-                        [
-                            [
-                                'type' => 'text',
-                                'text' => "You are a furniture cataloguing expert. Analyse this furniture product and return relevant style, material, and category tags. Return ONLY a valid JSON array of tag strings. Example: [\"Modern\",\"Leather\",\"Sofa\",\"Minimalist\",\"Living Room\"]",
-                            ],
-                        ],
-                        $imageContents
-                    ),
-                ],
-            ],
-            'max_tokens' => 200,
-        ]);
+        $response = $this->callGemini(
+            prompt: 'You are a furniture cataloguing expert. Analyse this furniture product and return relevant style, material, and category tags. Return ONLY a valid JSON array of tag strings. Example: ["Modern","Leather","Sofa","Minimalist","Living Room"]',
+            images: $images,
+            maxTokens: 200
+        );
 
-        $content = $response->choices[0]->message->content ?? '[]';
-        $content = trim(preg_replace('/^```json\s*|```\s*$/m', '', $content));
-        $tags    = json_decode($content, true);
+        $tags = $this->parseJsonArray($response);
 
-        if (! is_array($tags)) {
+        if (empty($tags)) {
             return [];
         }
 
@@ -139,5 +136,78 @@ class AiService
         $product->tags()->sync($tagModels->pluck('id'));
 
         return $tags;
+    }
+
+    /**
+     * Make a request to the Gemini API.
+     *
+     * @param  string  $prompt     The text prompt
+     * @param  array   $images     Array of ['mime_type' => ..., 'data' => base64...]
+     * @param  int     $maxTokens  Maximum output tokens
+     * @return string  The text response from Gemini
+     */
+    protected function callGemini(string $prompt, array $images = [], int $maxTokens = 300): string
+    {
+        $parts = [];
+
+        // Add text prompt
+        $parts[] = ['text' => $prompt];
+
+        // Add image parts (inline_data for base64-encoded images)
+        foreach ($images as $image) {
+            $parts[] = [
+                'inline_data' => [
+                    'mime_type' => $image['mime_type'],
+                    'data' => $image['data'],
+                ],
+            ];
+        }
+
+        $payload = [
+            'contents' => [
+                [
+                    'parts' => $parts,
+                ],
+            ],
+            'generationConfig' => [
+                'maxOutputTokens' => $maxTokens,
+                'temperature' => 0.2,
+            ],
+        ];
+
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent";
+
+        $response = Http::timeout($this->timeout)
+            ->withQueryParameters(['key' => $this->apiKey])
+            ->post($url, $payload);
+
+        if ($response->failed()) {
+            Log::error('Gemini API request failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return '[]';
+        }
+
+        $data = $response->json();
+
+        // Extract text from Gemini response structure
+        return $data['candidates'][0]['content']['parts'][0]['text'] ?? '[]';
+    }
+
+    /**
+     * Parse a JSON array from the AI response, handling markdown fences.
+     *
+     * @return string[]
+     */
+    protected function parseJsonArray(string $content): array
+    {
+        // Strip markdown code fences if present
+        $content = trim(preg_replace('/^```json\s*|```\s*$/m', '', $content));
+
+        $tags = json_decode($content, true);
+
+        return is_array($tags) ? $tags : [];
     }
 }

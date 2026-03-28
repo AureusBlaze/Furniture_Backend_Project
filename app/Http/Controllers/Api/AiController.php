@@ -20,7 +20,7 @@ class AiController extends Controller
      * Suggest products from a room image.
      *
      * Upload a room photo and receive AI-powered furniture product suggestions
-     * based on GPT-4o Vision analysis of the room's style and furniture.
+     * based on Gemini Vision analysis of the room's style and furniture.
      *
      * @authenticated
      * @bodyParam image file required Room image (jpeg/png/webp, max 10MB).
@@ -44,7 +44,7 @@ class AiController extends Controller
     /**
      * Auto-tag a product using AI.
      *
-     * Analyses the product's existing images via GPT-4o Vision and automatically
+     * Analyses the product's existing images via Gemini Vision and automatically
      * assigns furniture style/material/category tags to the product.
      *
      * @authenticated
