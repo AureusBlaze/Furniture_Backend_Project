@@ -21,7 +21,7 @@ class CategoryController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::topLevel()->with('children')->get();
+        $categories = Category::topLevel()->with('children')->withCount('products')->get();
 
         return response()->json(['data' => CategoryResource::collection($categories)]);
     }

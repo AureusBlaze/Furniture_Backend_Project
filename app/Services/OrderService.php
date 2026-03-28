@@ -22,6 +22,21 @@ class OrderService
     public function create(User $user, array $data): Order
     {
         return DB::transaction(function () use ($user, $data) {
+            // Create the address and attach to user
+            $address = Address::create([
+                'user_id'      => $user->id,
+                'address_line' => $data['address_line'],
+                'city'         => $data['city'],
+                'country'      => $data['country'],
+                'postal_code'  => $data['postal_code'],
+                'is_default'   => $user->addresses()->count() === 0,
+            ]);
+
+            // Set as user's default if they don't have one
+            if ($user->default_address_id === null) {
+                $user->update(['default_address_id' => $address->id]);
+            }
+
             // Validate products exist and have stock
             $itemsData = [];
             $total     = 0;
@@ -63,8 +78,8 @@ class OrderService
                 $item['product']->decrement('stock', $item['quantity']);
             }
 
-            // Attach address
-            $order->addresses()->attach($data['address_id']);
+            // Attach address via pivot
+            $order->addresses()->attach($address->id);
 
             return $order->load(['items.product', 'addresses']);
         });

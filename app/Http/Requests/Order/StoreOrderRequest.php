@@ -11,9 +11,12 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address_id'       => ['required', 'exists:addresses,id'],
-            'notes'            => ['nullable', 'string', 'max:1000'],
-            'items'            => ['required', 'array', 'min:1'],
+            'address_line'       => ['required', 'string', 'max:255'],
+            'city'               => ['required', 'string', 'max:255'],
+            'country'            => ['required', 'string', 'max:255'],
+            'postal_code'        => ['required', 'string', 'max:20'],
+            'notes'              => ['nullable', 'string', 'max:1000'],
+            'items'              => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity'   => ['required', 'integer', 'min:1'],
         ];

@@ -50,7 +50,10 @@ class OrderController extends Controller
      * Place a new order.
      *
      * @authenticated
-     * @bodyParam address_id integer required Delivery address ID. Example: 1
+     * @bodyParam address_line string required Street address. Example: 123 Main St
+     * @bodyParam city string required City name. Example: New York
+     * @bodyParam country string required Country name. Example: United States
+     * @bodyParam postal_code string required Postal/ZIP code. Example: 10001
      * @bodyParam items array required Array of order items.
      * @bodyParam items[].product_id integer required Example: 1
      * @bodyParam items[].quantity integer required Min 1. Example: 2

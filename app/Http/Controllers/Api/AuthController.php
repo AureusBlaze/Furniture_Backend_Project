@@ -26,14 +26,14 @@ class AuthController extends Controller
      * @bodyParam password_confirmation string required Must match password. Example: password123
      * @bodyParam role string Optional: customer or vendor. Example: customer
      *
-     * @response 201 {"data":{"id":1,"name":"John Doe","email":"john@example.com","role":"customer"},"token":"1|abc123..."}
+     * @response 201 {"user":{"id":1,"name":"John Doe","email":"john@example.com","role":"customer"},"token":"1|abc123..."}
      */
     public function register(RegisterRequest $request): JsonResponse
     {
         $result = $this->authService->register($request->validated());
 
         return response()->json([
-            'data'  => new UserResource($result['user']),
+            'user'  => new UserResource($result['user']),
             'token' => $result['token'],
         ], 201);
     }
@@ -44,7 +44,7 @@ class AuthController extends Controller
      * @bodyParam email string required Example: john@example.com
      * @bodyParam password string required Example: password123
      *
-     * @response 200 {"data":{},"token":"1|abc123"}
+     * @response 200 {"user":{},"token":"1|abc123"}
      * @response 422 {"message":"The provided credentials are incorrect."}
      */
     public function login(LoginRequest $request): JsonResponse
@@ -52,7 +52,7 @@ class AuthController extends Controller
         $result = $this->authService->login($request->validated());
 
         return response()->json([
-            'data'  => new UserResource($result['user']),
+            'user'  => new UserResource($result['user']),
             'token' => $result['token'],
         ]);
     }
@@ -74,12 +74,12 @@ class AuthController extends Controller
      * Get authenticated user.
      *
      * @authenticated
-     * @response 200 {"data":{}}
+     * @response 200 {"user":{}}
      */
     public function me(Request $request): JsonResponse
     {
         $user = $request->user()->load(['defaultAddress', 'vendor']);
 
-        return response()->json(['data' => new UserResource($user)]);
+        return response()->json(['user' => new UserResource($user)]);
     }
 }

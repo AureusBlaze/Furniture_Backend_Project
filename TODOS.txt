@@ -1,0 +1,5 @@
+1- fix permssiosns issues
+2- change ai to use google gemenini
+3- add a button for the protucts to generate tags
+4- change thr url of fake images
+5- add upload field to producsts create page to upload images and 3D models
