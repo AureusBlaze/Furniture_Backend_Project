@@ -21,7 +21,9 @@ class CategoryForm
                 Textarea::make('description')
                     ->columnSpanFull(),
                 FileUpload::make('image_url')
-                    ->image(),
+                    ->image()
+                    ->disk('public')
+                    ->maxSize(2048),
                 Select::make('parent_id')
                     ->relationship('parent', 'name'),
             ]);

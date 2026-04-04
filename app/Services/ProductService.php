@@ -40,6 +40,10 @@ class ProductService
             $query->forVendor($filters['vendor_id']);
         }
 
+        if (isset($filters['has_ar']) && filter_var($filters['has_ar'], FILTER_VALIDATE_BOOLEAN)) {
+            $query->whereHas('arModel');
+        }
+
         $sortField     = $filters['sort_by'] ?? 'created_at';
         $sortDirection = $filters['sort_direction'] ?? 'desc';
         $allowedSorts  = ['price', 'name', 'created_at', 'stock'];

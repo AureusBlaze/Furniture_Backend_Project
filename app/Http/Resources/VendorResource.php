@@ -13,7 +13,7 @@ class VendorResource extends JsonResource
             'id'          => $this->id,
             'name'        => $this->name,
             'description' => $this->description,
-            'logo_url'    => $this->logo_url,
+            'logo_url'    => $this->logo_url ? asset('storage/' . $this->logo_url) : null,
             'is_active'   => $this->is_active,
             'address'     => new AddressResource($this->whenLoaded('address')),
             'created_at'  => $this->created_at->toISOString(),

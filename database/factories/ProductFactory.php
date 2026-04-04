@@ -12,10 +12,11 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->randomElement([
-            'Modern Sofa', 'Leather Armchair', 'Oak Dining Table', 'Bookshelf', 'Coffee Table',
-            'King Size Bed Frame', 'Wardrobe', 'TV Stand', 'Office Desk', 'Bar Stool',
-            'Sectional Couch', 'Glass Side Table', 'Recliner Chair', 'Chest of Drawers',
-            'Corner Shelf', 'Reading Chair', 'Outdoor Lounge Chair', 'Garden Table',
+            'Walnut Lounge Chair', 'Calacatta Marble Console', 'Matte Black Arch Lamp', 
+            'Bouclé Cloud Sofa', 'Travertine Coffee Table', 'Brushed Brass Pendant', 
+            'Oak Wood Dining Chair', 'Minimalist Glass Side Table', 'Cashmere Armchair', 
+            'Ash Wood Credenza', 'Ceramic Accent Stool', 'Ribbed Glass Cabinet',
+            'Linen Platform Bed', 'Smoked Glass Floor Lamp', 'Fluted Oak Console',
         ]) . ' ' . $this->faker->unique()->numberBetween(1, 9999);
 
         return [

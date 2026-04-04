@@ -12,10 +12,10 @@ class ArModelResource extends JsonResource
         return [
             'id'            => $this->id,
             'product_id'    => $this->product_id,
-            'file_url'      => $this->file_url,
+            'file_url'      => $this->file_url ? asset('storage/' . $this->file_url) : null,
             'format'        => $this->format,
             'file_size'     => $this->file_size,
-            'thumbnail_url' => $this->thumbnail_url,
+            'thumbnail_url' => $this->thumbnail_url ? asset('storage/' . $this->thumbnail_url) : null,
             'created_at'    => $this->created_at->toISOString(),
         ];
     }

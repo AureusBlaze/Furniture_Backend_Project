@@ -23,6 +23,15 @@ class Media extends Model
         'size' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Media $media) {
+            if (empty($media->name)) {
+                $media->name = basename((string) $media->url);
+            }
+        });
+    }
+
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'product_media')

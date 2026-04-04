@@ -23,8 +23,10 @@ class VendorForm
                     ->required(),
                 Textarea::make('description')
                     ->columnSpanFull(),
-                TextInput::make('logo_url')
-                    ->url(),
+                \Filament\Forms\Components\FileUpload::make('logo_url')
+                    ->image()
+                    ->disk('public')
+                    ->maxSize(2048),
                 Toggle::make('is_active')
                     ->required(),
             ]);

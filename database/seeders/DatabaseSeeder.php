@@ -19,6 +19,13 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->command->info('===============================================');
+        $this->command->info('SETUP REMINDER:');
+        $this->command->info('1. Run `php artisan storage:link` if you haven\'t already.');
+        $this->command->info('2. Create `storage/app/public/placeholders` directory.');
+        $this->command->info('3. Place a `default_furniture.jpg` inside that folder.');
+        $this->command->info('4. Update your .env APP_URL to your local IPv4 address (e.g., http://192.168.1.x:8000).');
+        $this->command->info('===============================================');
         // ── Admin ──────────────────────────────────────────────
         $admin = User::factory()->admin()->create([
             'name'  => 'Admin User',
@@ -90,7 +97,13 @@ class DatabaseSeeder extends Seeder
         // ── Products ───────────────────────────────────────────
         $products = collect();
         for ($i = 0; $i < 30; $i++) {
-            $name    = fake()->randomElement(['Sofa', 'Chair', 'Table', 'Bed', 'Shelf', 'Desk', 'Wardrobe', 'Stool', 'Lamp', 'Cabinet']) . ' ' . fake()->word();
+            $name    = fake()->randomElement([
+                'Walnut Lounge Chair', 'Calacatta Marble Console', 'Matte Black Arch Lamp', 
+                'Bouclé Cloud Sofa', 'Travertine Coffee Table', 'Brushed Brass Pendant', 
+                'Oak Wood Dining Chair', 'Minimalist Glass Side Table', 'Cashmere Armchair', 
+                'Ash Wood Credenza', 'Ceramic Accent Stool', 'Ribbed Glass Cabinet',
+                'Linen Platform Bed', 'Smoked Glass Floor Lamp', 'Fluted Oak Console',
+            ]) . ' ' . fake()->unique()->numberBetween(1, 9999);
             $product = Product::create([
                 'vendor_id'   => $vendors->random()->id,
                 'category_id' => $leafCategories->random()->id,
@@ -111,7 +124,7 @@ class DatabaseSeeder extends Seeder
             // Attach a media placeholder
             $media = Media::create([
                 'name'      => $product->name . ' Image',
-                'url'       => 'https://via.placeholder.com/800x600?text=' . urlencode($product->name),
+                'url'       => 'placeholders/default_furniture.jpg',
                 'disk'      => 'public',
                 'type'      => 'image',
                 'mime_type' => 'image/jpeg',

@@ -12,7 +12,7 @@ class MediaResource extends JsonResource
         return [
             'id'         => $this->id,
             'name'       => $this->name,
-            'url'        => $this->url,
+            'url'        => $this->url ? asset('storage/' . $this->url) : null,
             'type'       => $this->type,
             'size'       => $this->size,
             'mime_type'  => $this->mime_type,

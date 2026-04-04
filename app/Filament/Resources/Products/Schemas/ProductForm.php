@@ -40,6 +40,26 @@ class ProductForm
                     ->numeric(),
                 TextInput::make('dimensions'),
                 TextInput::make('material'),
+                \Filament\Forms\Components\Repeater::make('media')
+                    ->relationship('media')
+                    ->schema([
+                        \Filament\Forms\Components\FileUpload::make('url')
+                            ->image()
+                            ->disk('public')
+                            ->maxSize(2048)
+                            ->storeFileNamesIn('name')
+                            ->required(),
+                        \Filament\Forms\Components\Hidden::make('name'),
+                        \Filament\Forms\Components\Toggle::make('is_primary')
+                            ->label('Primary Thumbnail'),
+                    ])
+                    ->columnSpanFull(),
+                \Filament\Forms\Components\FileUpload::make('arModel.file_url')
+                    ->label('AR Model (.glb, .obj)')
+                    ->disk('public')
+                    ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', '.glb', '.obj'])
+                    ->maxSize(51200)
+                    ->columnSpanFull(),
             ]);
     }
 }
