@@ -17,6 +17,10 @@ class ProductForm
                 Select::make('vendor_id')
                     ->relationship('vendor', 'name')
                     ->required(),
+                Select::make('tags')
+                    ->multiple()
+                    ->relationship('tags', 'name')
+                    ->required(),
                 Select::make('category_id')
                     ->relationship('category', 'name')
                     ->required(),

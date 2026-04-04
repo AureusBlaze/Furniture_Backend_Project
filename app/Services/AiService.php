@@ -14,16 +14,300 @@ class AiService
     protected string $apiKey;
     protected string $model;
     protected int $timeout;
+    protected string $aiServerUrl;
+
+    /**
+     * Stop words to filter from AI-generated tags.
+     */
+    protected const STOP_WORDS = [
+        'a',
+        'an',
+        'the',
+        'and',
+        'or',
+        'but',
+        'with',
+        'without',
+        'it',
+        'its',
+        'is',
+        'are',
+        'was',
+        'were',
+        'be',
+        'been',
+        'has',
+        'have',
+        'had',
+        'do',
+        'does',
+        'did',
+        'will',
+        'would',
+        'could',
+        'should',
+        'may',
+        'might',
+        'can',
+        'shall',
+        'in',
+        'on',
+        'at',
+        'to',
+        'for',
+        'of',
+        'from',
+        'by',
+        'up',
+        'out',
+        'off',
+        'over',
+        'under',
+        'again',
+        'then',
+        'once',
+        'here',
+        'there',
+        'when',
+        'where',
+        'why',
+        'how',
+        'all',
+        'each',
+        'every',
+        'both',
+        'few',
+        'more',
+        'most',
+        'other',
+        'some',
+        'such',
+        'no',
+        'nor',
+        'not',
+        'only',
+        'own',
+        'same',
+        'so',
+        'than',
+        'too',
+        'very',
+        'just',
+        'that',
+        'this',
+        'these',
+        'those',
+        'what',
+        'which',
+        'who',
+        'about',
+        'into',
+        'through',
+        'during',
+        'before',
+        'after',
+        'above',
+        'below',
+        'between',
+        'if',
+        'also',
+        'as',
+    ];
 
     public function __construct()
     {
         $this->apiKey = config('gemini.api_key');
         $this->model = config('gemini.model', 'gemini-2.0-flash');
         $this->timeout = config('gemini.request_timeout', 60);
+        $this->aiServerUrl = rtrim(config('gemini.ai_server_url', 'http://127.0.0.1:8001'), '/');
     }
 
     /**
-     * Analyse a room image and return an array of furniture tag strings.
+     * Send a room image to the Python AI server for analysis.
+     *
+     * Returns the full JSON response from the AI server containing
+     * room_type, materials, mood, furniture_present, etc.
+     */
+    public function analyzeRoomViaAiServer(UploadedFile $image): array
+    {
+        try {
+            $response = Http::timeout($this->timeout)
+                ->attach('file', file_get_contents($image->getRealPath()), $image->getClientOriginalName())
+                ->post("{$this->aiServerUrl}/analyze");
+
+            if ($response->failed()) {
+                Log::error('AI Server request failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return [];
+            }
+
+            $data = $response->json();
+
+            Log::info('AI Server response', [
+                'room_type' => $data['room_type'] ?? null,
+                'materials' => $data['materials'] ?? null,
+                'mood' => $data['mood'] ?? null,
+                'furniture_present' => $data['furniture_present'] ?? null,
+            ]);
+
+            return $data ?? [];
+        } catch (\Exception $e) {
+            Log::error('AI Server request exception', [
+                'message' => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Extract meaningful tag strings from the AI server response
+     * and filter out stop words.
+     *
+     * Collects tags from: room_type, materials, mood, furniture_present,
+     * and recommended_furniture[].tags.
+     *
+     * @return string[]
+     */
+    public function extractTagsFromAiResponse(array $aiResponse): array
+    {
+        // Unwrap the 'data' key if present (makes method flexible)
+        if (isset($aiResponse['data']) && is_array($aiResponse['data'])) {
+            $aiResponse = $aiResponse['data'];
+        }
+
+        $tags = [];
+
+        // Helper to split a phrase into words (lowercase, filter short words later)
+        $splitIntoWords = function ($phrase) {
+            $words = preg_split('/[\s]+/', trim($phrase));
+            return array_filter($words, fn($w) => strlen($w) > 1);
+        };
+
+        // Helper to get the first word of a phrase
+        $firstWord = function ($phrase) {
+            $words = preg_split('/[\s]+/', trim($phrase));
+            return $words[0] ?? '';
+        };
+
+        // Process dominant_colors: add color names as whole tags
+        if (!empty($aiResponse['dominant_colors']['colors']) && is_array($aiResponse['dominant_colors']['colors'])) {
+            foreach ($aiResponse['dominant_colors']['colors'] as $color) {
+                if (!empty($color['name']) && is_string($color['name'])) {
+                    $tags[] = strtolower($color['name']);
+                }
+            }
+        }
+
+        // Process lighting_analysis: prefix "light" to each string value
+        if (!empty($aiResponse['lighting_analysis']) && is_array($aiResponse['lighting_analysis'])) {
+            foreach ($aiResponse['lighting_analysis'] as $value) {
+                if (is_string($value) && strlen($value) > 0) {
+                    $tags[] = 'light ' . strtolower($value);
+                }
+            }
+        }
+
+        // Helper to extract from confidence arrays with optional mode
+        $extractFromConfidenceArray = function ($array, $mode = 'split') use (&$tags, $splitIntoWords, $firstWord) {
+            if (empty($array) || !is_array($array))
+                return;
+
+            // Find item with highest confidence
+            $best = null;
+            $bestConf = -1;
+            foreach ($array as $item) {
+                if (isset($item['confidence']) && $item['confidence'] > $bestConf) {
+                    $bestConf = $item['confidence'];
+                    $best = $item;
+                }
+            }
+            if ($best && isset($best['label']) && is_string($best['label'])) {
+                if ($mode === 'first_word') {
+                    $word = $firstWord($best['label']);
+                    if (!empty($word)) {
+                        $tags[] = strtolower($word);
+                    }
+                } else {
+                    // split into all words
+                    $words = $splitIntoWords($best['label']);
+                    foreach ($words as $word) {
+                        $tags[] = strtolower($word);
+                    }
+                }
+            }
+        };
+
+        // Process room_type and furniture_present – split all words
+        if (!empty($aiResponse['room_type'])) {
+            $extractFromConfidenceArray($aiResponse['room_type'], 'split');
+        }
+        if (!empty($aiResponse['furniture_present'])) {
+            $extractFromConfidenceArray($aiResponse['furniture_present'], 'split');
+        }
+
+        // Process materials and mood – take only the first word
+        if (!empty($aiResponse['materials'])) {
+            $extractFromConfidenceArray($aiResponse['materials'], 'first_word');
+        }
+        if (!empty($aiResponse['mood'])) {
+            $extractFromConfidenceArray($aiResponse['mood'], 'first_word');
+        }
+
+        // Process room_analysis: split all string values into words
+        if (!empty($aiResponse['room_analysis']) && is_array($aiResponse['room_analysis'])) {
+            foreach ($aiResponse['room_analysis'] as $value) {
+                if (is_string($value)) {
+                    $words = $splitIntoWords($value);
+                    foreach ($words as $word) {
+                        $tags[] = strtolower($word);
+                    }
+                }
+            }
+        }
+
+        // Process summary if present
+        if (!empty($aiResponse['summary']) && is_array($aiResponse['summary'])) {
+            foreach ($aiResponse['summary'] as $value) {
+                if (is_string($value)) {
+                    $words = $splitIntoWords($value);
+                    foreach ($words as $word) {
+                        $tags[] = strtolower($word);
+                    }
+                }
+            }
+        }
+
+        // Remove duplicates
+        $uniqueTags = array_unique($tags);
+
+        // Filter stop words (your existing method)
+        return $this->filterStopWords($uniqueTags);
+    }
+
+    /**
+     * Filter out stop words from a tag array.
+     *
+     * @param  string[] $tags
+     * @return string[]
+     */
+    protected function filterStopWords(array $tags): array
+    {
+        $stopWords = self::STOP_WORDS;
+
+        return collect($tags)
+            ->map(fn($tag) => trim((string) $tag))
+            ->filter(fn($tag) => $tag !== '' && strlen($tag) > 1)
+            ->filter(fn($tag) => !in_array(strtolower($tag), $stopWords, true))
+            ->unique(fn($tag) => strtolower($tag))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Analyse a room image via Gemini and return an array of furniture tag strings.
+     * (Kept as fallback if the AI server is unavailable.)
      *
      * @return string[]
      */
@@ -58,6 +342,8 @@ class AiService
         if (empty($tags)) {
             return collect();
         }
+
+        Log::info('Searching products with tags', ['tags' => $tags]);
 
         return Product::with(['vendor', 'category', 'tags', 'media', 'arModel'])
             ->active()

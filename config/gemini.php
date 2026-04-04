@@ -37,4 +37,15 @@ return [
 
     'request_timeout' => env('GEMINI_REQUEST_TIMEOUT', 60),
 
+    /*
+    |--------------------------------------------------------------------------
+    | AI Server URL (Python FastAPI)
+    |--------------------------------------------------------------------------
+    |
+    | Base URL for the Python AI server that performs room analysis.
+    |
+    */
+
+    'ai_server_url' => env('AI_SERVER_URL', 'http://127.0.0.1:8001'),
+
 ];

@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\AiService;
 use Illuminate\Http\JsonResponse;
+use Log;
 
 /**
  * @group AI
@@ -32,8 +33,23 @@ class AiController extends Controller
      */
     public function suggest(RoomAnalysisRequest $request): JsonResponse
     {
-        $tags     = $this->aiService->analyzeRoomImage($request->file('image'));
+        // 1. Forward the image to the Python AI server
+        $aiResponse = $this->aiService->analyzeRoomViaAiServer($request->file('image'));
+        Log::info('test 1', ['data' => $aiResponse]);
+
+        // 2. Extract & filter tags from the AI response
+        $tags = $this->aiService->extractTagsFromAiResponse($aiResponse);
+        Log::info('test 2', ['data' => $tags]);
+
+        // 3. Fallback: if the AI server returned nothing, try Gemini directly
+        if (empty($tags)) {
+            Log::info('if is true');
+            $tags = $this->aiService->analyzeRoomImage($request->file('image'));
+        }
+
+        // 4. Query local DB for matching products
         $products = $this->aiService->getSuggestedProducts($tags);
+        Log::info('test 3', ['data' => $products]);
 
         return response()->json([
             'detected_tags' => $tags,
