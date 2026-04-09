@@ -59,9 +59,9 @@ class ProductForm
                     ])
                     ->columnSpanFull(),
                 \Filament\Forms\Components\FileUpload::make('arModel.file_url')
-                    ->label('AR Model (.glb, .obj)')
+                    ->label('AR Model (.glb, .obj, .fbx)')
                     ->disk('public')
-                    ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', '.glb', '.obj'])
+                    ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', 'application/x-fbx', '.glb', '.obj', '.fbx'])
                     ->maxSize(51200)
                     ->columnSpanFull(),
             ]);

@@ -59,7 +59,7 @@ class ArModelController extends Controller
     {
         $data = $request->validate([
             'file_url'      => ['required', 'url'],
-            'format'        => ['required', 'in:glb,usdz,obj'],
+            'format'        => ['required', 'in:glb,usdz,obj,fbx'],
             'thumbnail_url' => ['nullable', 'url'],
             'file_size'     => ['nullable', 'integer'],
         ]);
