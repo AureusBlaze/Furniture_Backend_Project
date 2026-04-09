@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Filament\Infolists\Components\ThreeDimensionalModelEntry;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Schema;
 
 class ProductForm
@@ -58,11 +60,20 @@ class ProductForm
                             ->label('Primary Thumbnail'),
                     ])
                     ->columnSpanFull(),
-                \Filament\Forms\Components\FileUpload::make('arModel.file_url')
-                    ->label('AR Model (.glb, .obj, .fbx)')
-                    ->disk('public')
-                    ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', 'application/x-fbx', '.glb', '.obj', '.fbx'])
-                    ->maxSize(51200)
+                Fieldset::make('AR Model')
+                    ->relationship('arModel')
+                    ->schema([
+                        \Filament\Forms\Components\FileUpload::make('file_url')
+                            ->label('AR Model (.glb, .obj)')
+                            ->disk('public')
+                            ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', '.glb', '.obj'])
+                            ->maxSize(51200)
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
+                ThreeDimensionalModelEntry::make('arModel.file_url')
+                    ->label('3D Model Preview')
+                    ->visible(fn ($operation) => $operation === 'edit')
                     ->columnSpanFull(),
             ]);
     }
