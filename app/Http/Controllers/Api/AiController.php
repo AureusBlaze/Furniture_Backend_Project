@@ -15,7 +15,9 @@ use Log;
  */
 class AiController extends Controller
 {
-    public function __construct(private readonly AiService $aiService) {}
+    public function __construct(private readonly AiService $aiService)
+    {
+    }
 
     /**
      * Suggest products from a room image.
@@ -35,25 +37,47 @@ class AiController extends Controller
     {
         // 1. Forward the image to the Python AI server
         $aiResponse = $this->aiService->analyzeRoomViaAiServer($request->file('image'));
-        Log::info('test 1', ['data' => $aiResponse]);
 
         // 2. Extract & filter tags from the AI response
         $tags = $this->aiService->extractTagsFromAiResponse($aiResponse);
-        Log::info('test 2', ['data' => $tags]);
 
         // 3. Fallback: if the AI server returned nothing, try Gemini directly
         if (empty($tags)) {
-            Log::info('if is true');
             $tags = $this->aiService->analyzeRoomImage($request->file('image'));
         }
 
-        // 4. Query local DB for matching products
+
+        // 4. Build a human-readable description from the AI summary
+        $description = '';
+        $summary = data_get($aiResponse, 'summary', []);
+
+        if (!empty($summary)) {
+            $labelMap = [
+                'room_type' => 'room type',
+                'primary_style' => 'primary style',
+                'color_temperature' => 'color temperature',
+                'saturation' => 'saturation',
+                'brightness' => 'brightness',
+                'mood' => 'mood',
+            ];
+
+            $sentences = [];
+            foreach ($labelMap as $key => $label) {
+                if (!empty($summary[$key])) {
+                    $sentences[] = "The {$label} is {$summary[$key]}";
+                }
+            }
+
+            $description = implode('. ', $sentences) . '.';
+        }
+
+        // 5. Query local DB for matching products
         $products = $this->aiService->getSuggestedProducts($tags);
-        Log::info('test 3', ['data' => $products]);
 
         return response()->json([
+            'description' => $description,
             'detected_tags' => $tags,
-            'suggestions'   => ProductResource::collection($products),
+            'suggestions' => ProductResource::collection($products),
         ]);
     }
 
@@ -77,7 +101,7 @@ class AiController extends Controller
 
         return response()->json([
             'assigned_tags' => $tags,
-            'product'       => new ProductResource($product->load(['tags', 'media'])),
+            'product' => new ProductResource($product->load(['tags', 'media'])),
         ]);
     }
 }

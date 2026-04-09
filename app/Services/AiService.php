@@ -145,13 +145,6 @@ class AiService
 
             $data = $response->json();
 
-            Log::info('AI Server response', [
-                'room_type' => $data['room_type'] ?? null,
-                'materials' => $data['materials'] ?? null,
-                'mood' => $data['mood'] ?? null,
-                'furniture_present' => $data['furniture_present'] ?? null,
-            ]);
-
             return $data ?? [];
         } catch (\Exception $e) {
             Log::error('AI Server request exception', [
@@ -342,8 +335,6 @@ class AiService
         if (empty($tags)) {
             return collect();
         }
-
-        Log::info('Searching products with tags', ['tags' => $tags]);
 
         return Product::with(['vendor', 'category', 'tags', 'media', 'arModel'])
             ->active()
