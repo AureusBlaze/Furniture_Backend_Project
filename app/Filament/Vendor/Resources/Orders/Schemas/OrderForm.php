@@ -15,6 +15,7 @@ class OrderForm
     {
         return $schema
             ->components([
+                DateTimePicker::make('created_at')->disabled()->label('Created At')->columnSpanFull(),
                 Select::make('user_id')
                     ->relationship('user', 'name')
                     ->required(),
