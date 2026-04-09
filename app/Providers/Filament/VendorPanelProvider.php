@@ -10,6 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -25,7 +26,9 @@ class VendorPanelProvider extends PanelProvider
     {
         return $panel
             ->id('vendor')
-            ->path('vendor')
+            ->path('vendors')
+            ->login()
+            ->maxContentWidth(Width::Full)
             ->colors([
                 'primary' => Color::Amber,
             ])

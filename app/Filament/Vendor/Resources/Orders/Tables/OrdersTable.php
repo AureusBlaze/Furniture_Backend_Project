@@ -21,23 +21,6 @@ class OrdersTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->searchable(),
-                TextColumn::make('paid_at')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('shipped_at')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('delivered_at')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
