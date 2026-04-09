@@ -17,15 +17,16 @@ class CategoryForm
                 TextInput::make('name')
                     ->required()->ColumnSpanFull(),
                 TextInput::make('slug')
-                    ->required()->ColumnSpanFull(),
+                    ->ColumnSpanFull(),
                 Textarea::make('description')
                     ->columnSpanFull(),
+                Select::make('parent_id')
+                    ->relationship('parent', 'name')->columnSpanFull(),
                 FileUpload::make('image_url')
+                    ->columnSpanFull()
                     ->image()
                     ->disk('public')
                     ->maxSize(2048),
-                Select::make('parent_id')
-                    ->relationship('parent', 'name'),
             ]);
     }
 }

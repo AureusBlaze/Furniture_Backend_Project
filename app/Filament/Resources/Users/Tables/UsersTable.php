@@ -24,7 +24,7 @@ class UsersTable
                     ->sortable(),
                 TextColumn::make('role')
                     ->searchable(),
-                TextColumn::make('defaultAddress.id')
+                TextColumn::make('defaultAddress.address_line')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

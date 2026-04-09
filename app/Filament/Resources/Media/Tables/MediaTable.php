@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Media\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -14,18 +15,10 @@ class MediaTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('url')
-                    ->searchable(),
-                TextColumn::make('disk')
-                    ->searchable(),
-                TextColumn::make('type')
-                    ->searchable(),
-                TextColumn::make('size')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('mime_type')
+                TextColumn::make('id'),
+                TextColumn::make('name'),
+                ImageColumn::make('url')
+                    ->disk('public')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -40,12 +33,12 @@ class MediaTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                // EditAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                // BulkActionGroup::make([
+                //     DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 }
