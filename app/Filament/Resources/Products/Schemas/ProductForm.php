@@ -61,6 +61,7 @@ class ProductForm
                     ])
                     ->columnSpanFull(),
                 Fieldset::make('AR Model')
+                    ->visible(fn ($operation) => $operation === 'edit')
                     ->relationship('arModel')
                     ->schema([
                         \Filament\Forms\Components\FileUpload::make('file_url')
