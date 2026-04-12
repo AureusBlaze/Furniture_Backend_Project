@@ -48,6 +48,8 @@ class ProductForm
                 TextInput::make('material'),
                 \Filament\Forms\Components\Repeater::make('media')
                     ->relationship('media')
+                    ->orderColumn('sort_order')
+                    ->reorderableWithButtons()
                     ->schema([
                         \Filament\Forms\Components\FileUpload::make('url')
                             ->image()
@@ -55,9 +57,6 @@ class ProductForm
                             ->maxSize(8192)
                             ->storeFileNamesIn('name')
                             ->required(),
-                        \Filament\Forms\Components\Hidden::make('name'),
-                        \Filament\Forms\Components\Toggle::make('is_primary')
-                            ->label('Primary Thumbnail'),
                     ])
                     ->columnSpanFull(),
                 // Fieldset::make('AR Model')
