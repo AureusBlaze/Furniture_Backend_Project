@@ -8,7 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\AiService;
 use Illuminate\Http\JsonResponse;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @group AI
@@ -37,9 +37,11 @@ class AiController extends Controller
     {
         // 1. Forward the image to the Python AI server
         $aiResponse = $this->aiService->analyzeRoomViaAiServer($request->file('image'));
+        Log::info('AI Server response', ['response' => $aiResponse]);
 
         // 2. Extract & filter tags from the AI response
         $tags = $this->aiService->extractTagsFromAiResponse($aiResponse);
+        Log::info('Extracted tags from AI response', ['tags' => $tags]);
 
         // 3. Fallback: if the AI server returned nothing, try Gemini directly
         if (empty($tags)) {
