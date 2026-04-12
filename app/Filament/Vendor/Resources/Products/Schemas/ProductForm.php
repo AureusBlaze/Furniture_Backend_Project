@@ -53,7 +53,7 @@ class ProductForm
                         \Filament\Forms\Components\FileUpload::make('url')
                             ->image()
                             ->disk('public')
-                            ->maxSize(2048)
+                            ->maxSize(8192)
                             ->storeFileNamesIn('name')
                             ->required(),
                         \Filament\Forms\Components\Hidden::make('name'),

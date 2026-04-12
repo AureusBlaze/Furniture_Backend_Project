@@ -26,7 +26,7 @@ class VendorForm
                 \Filament\Forms\Components\FileUpload::make('logo_url')
                     ->image()
                     ->disk('public')
-                    ->maxSize(2048),
+                    ->maxSize(8192),
                 Toggle::make('is_active')
                     ->required(),
             ]);

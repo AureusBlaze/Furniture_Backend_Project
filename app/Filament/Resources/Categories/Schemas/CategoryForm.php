@@ -26,7 +26,7 @@ class CategoryForm
                     ->columnSpanFull()
                     ->image()
                     ->disk('public')
-                    ->maxSize(2048),
+                    ->maxSize(8192),
             ]);
     }
 }

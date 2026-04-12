@@ -52,7 +52,7 @@ class ProductForm
                         \Filament\Forms\Components\FileUpload::make('url')
                             ->image()
                             ->disk('public')
-                            ->maxSize(2048)
+                            ->maxSize(8192)
                             ->storeFileNamesIn('name')
                             ->required(),
                         \Filament\Forms\Components\Hidden::make('name'),
@@ -60,22 +60,22 @@ class ProductForm
                             ->label('Primary Thumbnail'),
                     ])
                     ->columnSpanFull(),
-                Fieldset::make('AR Model')
-                    ->visible(fn ($operation) => $operation === 'edit')
-                    ->relationship('arModel')
-                    ->schema([
-                        \Filament\Forms\Components\FileUpload::make('file_url')
-                            ->label('AR Model (.glb, .obj)')
-                            ->disk('public')
-                            ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', '.glb', '.obj'])
-                            ->maxSize(51200)
-                            ->columnSpanFull(),
-                    ])
-                    ->columnSpanFull(),
-                ThreeDimensionalModelEntry::make('arModel.file_url')
-                    ->label('3D Model Preview')
-                    ->visible(fn ($operation) => $operation === 'edit')
-                    ->columnSpanFull(),
+                // Fieldset::make('AR Model')
+                //     ->visible(fn ($operation) => $operation === 'edit')
+                //     ->relationship('arModel')
+                //     ->schema([
+                //         \Filament\Forms\Components\FileUpload::make('file_url')
+                //             ->label('AR Model (.glb, .obj)')
+                //             ->disk('public')
+                //             ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', '.glb', '.obj'])
+                //             ->maxSize(51200)
+                //             ->columnSpanFull(),
+                //     ])
+                //     ->columnSpanFull(),
+                // ThreeDimensionalModelEntry::make('arModel.file_url')
+                //     ->label('3D Model Preview')
+                //     ->visible(fn ($operation) => $operation === 'edit')
+                //     ->columnSpanFull(),
             ]);
     }
 }
