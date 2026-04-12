@@ -31,7 +31,7 @@ class ProductService
                         $descendantIds = $category->descendants()->pluck('id')->toArray();
                         $expandedIds = array_merge($expandedIds, $descendantIds);
                         // If parent products should also be included, uncomment the next line:
-                        // $expandedIds[] = $catId;
+                        $expandedIds[] = $catId;
                     } else {
                         $expandedIds[] = $catId;
                     }
