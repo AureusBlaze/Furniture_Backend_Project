@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Tag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -14,15 +15,35 @@ class ProductService
         $query = Product::with(['vendor', 'category', 'tags', 'media', 'arModel'])
             ->active();
 
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $query->search($filters['search']);
         }
 
-        if (! empty($filters['category_id'])) {
-            $query->filterByCategory($filters['category_id']);
+        if (!empty($filters['category_id'])) {
+            $inputIds = (array) $filters['category_id'];
+            $expandedIds = [];
+
+            foreach ($inputIds as $catId) {
+                $category = Category::find($catId);
+                if ($category) {
+                    if (is_null($category->parent_id)) {
+                        // Parent category – get all descendant IDs (children, grandchildren, etc.)
+                        $descendantIds = $category->descendants()->pluck('id')->toArray();
+                        $expandedIds = array_merge($expandedIds, $descendantIds);
+                        // If parent products should also be included, uncomment the next line:
+                        // $expandedIds[] = $catId;
+                    } else {
+                        $expandedIds[] = $catId;
+                    }
+                }
+            }
+
+            if (!empty($expandedIds)) {
+                $query->filterByCategory(array_unique($expandedIds));
+            }
         }
 
-        if (! empty($filters['tags'])) {
+        if (!empty($filters['tags'])) {
             // tags can be array of IDs or slugs
             $tagInput = (array) $filters['tags'];
             if (is_numeric($tagInput[0])) {
@@ -36,7 +57,7 @@ class ProductService
             $query->priceRange($filters['min_price'] ?? null, $filters['max_price'] ?? null);
         }
 
-        if (! empty($filters['vendor_id'])) {
+        if (!empty($filters['vendor_id'])) {
             $query->forVendor($filters['vendor_id']);
         }
 
@@ -44,9 +65,9 @@ class ProductService
             $query->whereHas('arModel');
         }
 
-        $sortField     = $filters['sort_by'] ?? 'created_at';
+        $sortField = $filters['sort_by'] ?? 'created_at';
         $sortDirection = $filters['sort_direction'] ?? 'desc';
-        $allowedSorts  = ['price', 'name', 'created_at', 'stock'];
+        $allowedSorts = ['price', 'name', 'created_at', 'stock'];
 
         if (in_array($sortField, $allowedSorts)) {
             $query->orderBy($sortField, $sortDirection);
@@ -61,7 +82,7 @@ class ProductService
 
         $product = Product::create($data);
 
-        if (! empty($data['tags'])) {
+        if (!empty($data['tags'])) {
             $product->tags()->sync($data['tags']);
         }
 

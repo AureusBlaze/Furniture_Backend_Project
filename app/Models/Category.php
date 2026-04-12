@@ -26,11 +26,6 @@ class Category extends Model
         return $this->belongsTo(Category::class, 'parent_id');
     }
 
-    public function children(): HasMany
-    {
-        return $this->hasMany(Category::class, 'parent_id');
-    }
-
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
@@ -41,5 +36,26 @@ class Category extends Model
     public function scopeTopLevel($query)
     {
         return $query->whereNull('parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Category::class, 'parent_id');
+    }
+
+    public function descendants(): HasMany
+    {
+        return $this->children()->with('descendants');
+    }
+
+    // Optional: a method to get all descendant IDs efficiently
+    public function getDescendantIds(): array
+    {
+        $ids = [];
+        foreach ($this->children as $child) {
+            $ids[] = $child->id;
+            $ids = array_merge($ids, $child->getDescendantIds());
+        }
+        return $ids;
     }
 }
