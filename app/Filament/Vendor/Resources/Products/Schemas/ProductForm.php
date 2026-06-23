@@ -65,9 +65,8 @@ class ProductForm
                     ->relationship('arModel')
                     ->schema([
                         \Filament\Forms\Components\FileUpload::make('file_url')
-                            ->label('AR Model (.glb, .obj)')
+                            ->label('AR Model File')
                             ->disk('public')
-                            ->acceptedFileTypes(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream', '.glb', '.obj'])
                             ->maxSize(51200)
                             ->columnSpanFull(),
                     ])
